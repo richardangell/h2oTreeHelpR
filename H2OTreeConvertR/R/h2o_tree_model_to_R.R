@@ -40,8 +40,7 @@
 h2o_tree_model_to_R <- function(h2o_model,
                                 h2o_jar_file,
                                 output_subdir = getwd(),
-                                delete_intermediate_files = TRUE,
-                                model_ini_overwrite = TRUE) {
+                                delete_intermediate_files = TRUE) {
 
   #---------------------------------------------------------------------------#
   # Function Layout: ----
@@ -118,8 +117,7 @@ h2o_tree_model_to_R <- function(h2o_model,
 
   output_gv_files <- mojo_trees_to_gvs(h2o_jar = h2o_jar_file,
                                        mojo_zip = mojo_file,
-                                       gv_output_dir = output_dir,
-                                       model_ini_overwrite = model_ini_overwrite)
+                                       gv_output_dir = output_dir)
 
   #---------------------------------------------------------------------------#
   # Section 3. Convert .gv files to data.frame structure ----

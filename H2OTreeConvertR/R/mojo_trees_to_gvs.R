@@ -20,8 +20,7 @@
 #' @export
 mojo_trees_to_gvs <- function(h2o_jar,
                               mojo_zip,
-                              gv_output_dir,
-                              model_ini_overwrite = TRUE) {
+                              gv_output_dir) {
 
   #---------------------------------------------------------------------------#
   # Function Layout: ----
@@ -85,17 +84,9 @@ mojo_trees_to_gvs <- function(h2o_jar,
 
   }
 
-  # stop the function if file exists and overwrite is FALSE
-  if (!model_ini_overwrite & file.exists('model.ini')) {
-
-    stop('model_ini_overwrite is FALSE and model.ini file already exists in working directory; ', getwd())
-
-  }
-
   # extract model.ini file from zip file
   unzip(mojo_zip,
         files = 'model.ini',
-        overwrite = model_ini_overwrite,
         exdir = gv_output_dir)
 
   model_ini <- readLines('model.ini')
