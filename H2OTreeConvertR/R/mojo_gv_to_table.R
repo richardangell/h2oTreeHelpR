@@ -1,4 +1,3 @@
-
 #' Convert h2o tree .gv file to tabular structure.
 #'
 #' Reads a single .gv file containing a tree from a h2o gbm or drf and parses it

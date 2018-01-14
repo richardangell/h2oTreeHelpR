@@ -1,4 +1,3 @@
-
 #' Export single h2o tree from MOJO .zip to .gv file.
 #'
 #' Calls the h2o hex.genmodel.tools.PrintMojo function.

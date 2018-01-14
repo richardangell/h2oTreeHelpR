@@ -1,4 +1,3 @@
-
 #' Convert h2o tree .gv file to tabular structure.
 #'
 #' Reads a single .gv file containing a tree from a h2o gbm or drf and parses it
@@ -38,13 +37,15 @@
 #'                                  h2o_jar_file = 'h2o.jar')
 #'
 #' @export
-h2o_tree_model_to_R <- function(h2o_model, mojo_output_path, gv_output_path,
-                                model_ini_overwrite = TRUE, h2o_jar_file) {
+h2o_tree_model_to_R <- function(h2o_model,
+                                h2o_jar_file,
+                                delete_intermediate = TRUE,
+                                model_ini_overwrite = TRUE) {
 
   #---------------------------------------------------------------------------#
   # Function Layout: ----
   # Section 0. Input checking
-  # Section 1. Export MOJO
+  # Section 1. Export h2o model to MOJO
   # Section 2. Convert trees in MOJO .zip to .gv files
   # Section 3. Convert .gv files to data.frame structure
   #---------------------------------------------------------------------------#
@@ -75,26 +76,53 @@ h2o_tree_model_to_R <- function(h2o_model, mojo_output_path, gv_output_path,
 
   }
 
+  output_dir <- paste0(getwd(),
+                       .Platform$file.sep,
+                       Sys.Date(),
+                       "_",
+                       gsub(":", "-", format(Sys.time(), "%X")),
+                       "_H2OTreeConvertR-Intermediate")
+
+  if (dir.exists(output_dir)) {
+
+    stop("output directory already exists: ",
+         output_dir)
+
+  } else {
+
+    cat("creating output directory:", output_dir, "\n")
+
+    dir.create(output_dir)
+
+  }
+
   #---------------------------------------------------------------------------#
-  # Section 1. Export MOJO ----
+  # Section 1. Export h2o model to MOJO ----
   #---------------------------------------------------------------------------#
 
+  cat("saving model mojo to", output_dir, "\n")
+
   h2o::h2o.saveMojo(object = h2o_model,
-                    path = mojo_output_path)
+                    path = output_dir)
 
   #---------------------------------------------------------------------------#
   # Section 2. Convert trees in MOJO .zip to .gv files ----
   #---------------------------------------------------------------------------#
 
+  cat("converting trees in mojo to .gv files", "\n")
+
+  mojo_file = file.path(output_dir, paste0(h2o_model@model_id, ".zip"))
+
   output_gv_files <- mojo_trees_to_gvs(h2o_jar = h2o_jar_file,
-                                       mojo_zip = file.path(mojo_output_path,
-                                                            paste0(h2o_model@model_id, ".zip")),
-                                       gv_output_path = gv_output_path,
+                                       mojo_zip = mojo_file,
+                                       gv_output_dir = output_dir,
                                        model_ini_overwrite = model_ini_overwrite)
 
   #---------------------------------------------------------------------------#
   # Section 3. Convert .gv files to data.frame structure ----
   #---------------------------------------------------------------------------#
+
+  cat("parsing .gv structures to data.frames", "\n")
 
   tree_dfs <- lapply(output_gv_files, mojo_gv_to_table)
 

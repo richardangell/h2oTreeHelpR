@@ -1,11 +1,10 @@
-
 #' Export all trees from MOJO .zip to .gv files.
 #'
 #' Calls call_PrintMojo to output each tree to .gv file in the input directory.
 #'
 #' @param h2o_jar h2o.jar file, including path.
 #' @param mojo_zip h2o tree based MOJO zip file, including path.
-#' @param gv_output_path directory to output .gv files to.
+#' @param gv_output_dir directory to output .gv files to.
 #' @param model_ini_overwrite \code{logical} when extracting the model.ini
 #'        from the MOJO .zip, should an existing file be overwritten? Default
 #'        = \code{TRUE}.
@@ -19,7 +18,10 @@
 #'                   model_ini_overwrite = FALSE)
 #'
 #' @export
-mojo_trees_to_gvs <- function(h2o_jar, mojo_zip, gv_output_path, model_ini_overwrite = TRUE) {
+mojo_trees_to_gvs <- function(h2o_jar,
+                              mojo_zip,
+                              gv_output_dir,
+                              model_ini_overwrite = TRUE) {
 
   #---------------------------------------------------------------------------#
   # Function Layout: ----
@@ -50,6 +52,7 @@ mojo_trees_to_gvs <- function(h2o_jar, mojo_zip, gv_output_path, model_ini_overw
     stop('h2o_jar file does not exist')
 
   }
+
   if (length(mojo_zip) != 1) {
 
     stop('mojo_zip must be a single file')
@@ -90,7 +93,10 @@ mojo_trees_to_gvs <- function(h2o_jar, mojo_zip, gv_output_path, model_ini_overw
   }
 
   # extract model.ini file from zip file
-  unzip(mojo_zip, files = 'model.ini', overwrite = model_ini_overwrite)
+  unzip(mojo_zip,
+        files = 'model.ini',
+        overwrite = model_ini_overwrite,
+        exdir = gv_output_dir)
 
   model_ini <- readLines('model.ini')
 
@@ -125,23 +131,23 @@ mojo_trees_to_gvs <- function(h2o_jar, mojo_zip, gv_output_path, model_ini_overw
   #---------------------------------------------------------------------------#
 
   # create output directory if required
-  if (!dir.exists(gv_output_path)) {
+  if (!dir.exists(gv_output_dir)) {
 
-    cat('creating directory ', gv_output_path)
+    cat('creating directory ', gv_output_dir)
 
-    dir.create(gv_output_path)
+    dir.create(gv_output_dir)
 
   }
 
   mojo_zip_name <- tools::file_path_sans_ext(basename(mojo_zip))
 
   # loop through each tree and output to .gv file
-  for (i in 0:(n_trees-1)) {
+  for (i in 0:(n_trees - 1)) {
 
     call_PrintMojo(h2o_jar = h2o_jar,
                    tree_no = i,
                    mojo_zip = mojo_zip,
-                   gv_output = file.path(gv_output_path,
+                   gv_output = file.path(gv_output_dir,
                                          paste0(mojo_zip_name, '_', i, '.gv')))
 
   }
@@ -150,8 +156,8 @@ mojo_trees_to_gvs <- function(h2o_jar, mojo_zip, gv_output_path, model_ini_overw
   # Section 3. End of function  ----
   #---------------------------------------------------------------------------#
 
-  return(file.path(gv_output_path,
-                   paste0(mojo_zip_name, '_', 0:(n_trees-1), '.gv')))
+  return(file.path(gv_output_dir,
+                   paste0(mojo_zip_name, '_', 0:(n_trees - 1), '.gv')))
 
 }
 
