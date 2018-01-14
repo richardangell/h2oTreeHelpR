@@ -39,6 +39,7 @@
 #' @export
 h2o_tree_model_to_R <- function(h2o_model,
                                 h2o_jar_file,
+                                output_subdir = getwd(),
                                 delete_intermediate = TRUE,
                                 model_ini_overwrite = TRUE) {
 
@@ -76,7 +77,7 @@ h2o_tree_model_to_R <- function(h2o_model,
 
   }
 
-  output_dir <- paste0(getwd(),
+  output_dir <- paste0(output_subdir,
                        .Platform$file.sep,
                        Sys.Date(),
                        "_",
@@ -90,7 +91,7 @@ h2o_tree_model_to_R <- function(h2o_model,
 
   } else {
 
-    cat("creating output directory:", output_dir, "\n")
+    cat("creating output directory", output_dir, "\n")
 
     dir.create(output_dir)
 
