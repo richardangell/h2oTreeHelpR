@@ -1,21 +1,12 @@
-#' Export all trees from MOJO .zip to .gv files.
+#' Export all trees from a h2o mojo (.zip) to .gv files
 #'
-#' Calls call_PrintMojo to output each tree to .gv file in the input directory.
+#' Calls call_PrintMojo to output each tree to .gv file in the input directory
 #'
 #' @param h2o_jar h2o.jar file, including path.
-#' @param mojo_zip h2o tree based MOJO zip file, including path.
+#' @param mojo_zip h2o tree based mojo zip file, including path.
 #' @param gv_output_dir directory to output .gv files to.
-#' @param model_ini_overwrite \code{logical} when extracting the model.ini
-#'        from the MOJO .zip, should an existing file be overwritten? Default
-#'        = \code{TRUE}.
 #'
-#' @return Outputs trees from MOJO zip to .gv files.
-#'
-#' @examples
-#' mojo_trees_to_gvs('h2o.jar',
-#'                   'GBM_model_R_1488095800763_37.zip',
-#'                   'gv_output/',
-#'                   model_ini_overwrite = FALSE)
+#' @return Outputs trees from mojo zip to .gv files.
 #'
 #' @export
 mojo_trees_to_gvs <- function(h2o_jar,
@@ -84,7 +75,7 @@ mojo_trees_to_gvs <- function(h2o_jar,
 
   }
 
-  # extract model.ini file from zip file
+  # extract model.ini file from zip file to gv_output_dir
   unzip(mojo_zip,
         files = 'model.ini',
         exdir = gv_output_dir)

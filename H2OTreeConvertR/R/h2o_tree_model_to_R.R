@@ -1,21 +1,44 @@
-#' Convert h2o tree .gv file to tabular structure.
+#' Convert h2o gbm or drf to tabular structure
 #'
-#' Reads a single .gv file containing a tree from a h2o gbm or drf and parses it
-#' to a tabular structure.
+#' Takes a h2o tree based model (gbm or drf) and returns a \code{data.frame}
+#' representing each tree in the model in tabular structure.
 #'
 #' @param h2o_model gbm or drf h2o model.
-#' @param mojo_output_path directory to export h2o_model's MOJO .zip to.
-#' @param gv_output_path directory to output .gv file for each tree in model.
-#' @param model_ini_overwrite \code{logical} when extracting the model.ini
-#'        from the MOJO .zip, should an existing file be overwritten? Default
-#'        = \code{TRUE}.
 #' @param h2o_jar_file h2o.jar file, including path.
+#' @param output_subdir directory to output intermediate files (mojo .zip, .gv
+#' and model.ini files) to. Default is location is current working dir. Files
+#' are put into a sudir with date-time in name to avoid conflicts.
+#' @param delete_intermediate_files should intermediate files output in
+#'  processing be deleted? Default = \code{TRUE}.
 #'
-#' @return \code{data.frame} containing tree structure.
+#' @return \code{list} containing a \code{data.frame} for each tree containing
+#' the tree structure. Tree structure \code{data.frame}s contain the following
+#' columns;
+#' \itemize{
+#'   \item{"node"} {name of the node in the tree}
+#'   \item{"node_text"} {complete text associated with the node}
+#'   \item{"predictions"} {predicted values for terminal nodes or NA}
+#'   \item{"left_split"} {left child node or NA if a terminal node}
+#'   \item{"right_split"} {right child node or NA if a terminal node}
+#'   \item{"left_split_levels"} {levels of the split variable that are sent to
+#'   the left child node from the current node, separated by |}
+#'   \item{"right_split_levels"} {levels of the split variable that are sent
+#'   to the left child node from the current node, separated by |}
+#'   \item{"NA_direction"} {the direction missing values are sent from the
+#'   current node}
+#'   \item{"node_text_label"} {the label arg of node_text, specifically the
+#'   split condition for numeric split variables or the variable name for
+#'   categorical variables}
+#'   \item{"node_variable_type"} {split variable type for node, either
+#'   categorical or numeric}
+#'   \item{"split_column"} {the name of the split column for the current node}
+#'   \item{"node_split_point"} {the split value for the current node if numeric,
+#'   otherwise NA}
+#' }
+#'
 #'
 #' @examples
 #' library(h2o)
-#'
 #' h2o.init()
 #'
 #' prostate.hex = h2o.uploadFile(path = system.file("extdata",
@@ -23,7 +46,11 @@
 #'                                                  package = "h2o"),
 #'                               destination_frame = "prostate.hex")
 #'
-#' prostate.gbm = h2o.gbm(x = c("AGE", "RACE", "DPROS", "DCAPS", "PSA", "VOL", "GLEASON"),
+#' prostate.hex["RACE"] = as.factor(prostate.hex["RACE"])
+#' prostate.hex["DPROS"] = as.factor(prostate.hex["DPROS"])
+#'
+#' expl_cols <- c("AGE", "RACE", "DPROS", "DCAPS", "PSA", "VOL", "GLEASON")
+#' prostate.gbm = h2o.gbm(x = expl_cols,
 #'                        y = "CAPSULE",
 #'                        training_frame = prostate.hex,
 #'                        ntrees = 5,
@@ -31,9 +58,6 @@
 #'                        learn_rate = 0.1)
 #'
 #' h2o_trees <- h2o_tree_model_to_R(h2o_model = prostate.gbm,
-#'                                  mojo_output_path = '/Users/UserName/Desktop',
-#'                                  gv_output_path = '/Users/UserName/Desktop',
-#'                                  model_ini_overwrite = TRUE,
 #'                                  h2o_jar_file = 'h2o.jar')
 #'
 #' @export
