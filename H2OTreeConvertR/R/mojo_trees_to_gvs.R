@@ -89,7 +89,7 @@ mojo_trees_to_gvs <- function(h2o_jar,
         files = 'model.ini',
         exdir = gv_output_dir)
 
-  model_ini <- readLines('model.ini')
+  model_ini <- readLines(file.path(gv_output_dir, 'model.ini'))
 
   algo_line <- grep('algo = ', model_ini)
 
