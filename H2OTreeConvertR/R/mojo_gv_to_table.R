@@ -170,6 +170,11 @@ mojo_gv_to_table <- function(gv_file) {
                                           1,
                                           nchar(node_table$right_split_levels) - 1)
 
+  # record which direction missing values go
+  node_table$NA_direction <- rep(NA, nrow(node_table))
+  node_table$NA_direction[grepl("[NA]", node_table$left_split_levels)] <- "left"
+  node_table$NA_direction[grepl("[NA]", node_table$right_split_levels)] <- "right"
+
   # extract the label part of the text for that node
   node_table$node_text_label <- label_values
 
