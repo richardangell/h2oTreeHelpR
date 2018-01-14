@@ -45,10 +45,10 @@ h2o_tree_model_to_R <- function(h2o_model,
   #---------------------------------------------------------------------------#
   # Function Layout: ----
   # Section 0. Input checking
-  # Section 1. Export h2o model to MOJO
-  # Section 2. Convert trees in MOJO .zip to .gv files
+  # Section 1. Export h2o model to mojo
+  # Section 2. Convert trees in mojo .zip to .gv files
   # Section 3. Convert .gv files to data.frame structure
-  #
+  # Section 4. Optionally remove directory with intermediate files
   # Section 5. Return tree structure data.frames
   #---------------------------------------------------------------------------#
 
@@ -99,7 +99,7 @@ h2o_tree_model_to_R <- function(h2o_model,
   }
 
   #---------------------------------------------------------------------------#
-  # Section 1. Export h2o model to MOJO ----
+  # Section 1. Export h2o model to mojo ----
   #---------------------------------------------------------------------------#
 
   cat("saving model mojo to", output_dir, "\n")
@@ -108,7 +108,7 @@ h2o_tree_model_to_R <- function(h2o_model,
                     path = output_dir)
 
   #---------------------------------------------------------------------------#
-  # Section 2. Convert trees in MOJO .zip to .gv files ----
+  # Section 2. Convert trees in mojo .zip to .gv files ----
   #---------------------------------------------------------------------------#
 
   cat("converting trees in mojo to .gv files", "\n")
@@ -128,7 +128,7 @@ h2o_tree_model_to_R <- function(h2o_model,
   tree_dfs <- lapply(output_gv_files, mojo_gv_to_table)
 
   #---------------------------------------------------------------------------#
-  # Section 4. Remove ----
+  # Section 4. Optionally remove directory with intermediate files ----
   #---------------------------------------------------------------------------#
 
   if (delete_intermediate_files) {

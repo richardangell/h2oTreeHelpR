@@ -139,11 +139,8 @@ mojo_gv_to_table <- function(gv_file) {
   }
 
   node_table$left_split <- rep(NA, nrow(node_table))
-
   node_table$right_split <- rep(NA, nrow(node_table))
-
   node_table$left_split_levels <- rep(NA, nrow(node_table))
-
   node_table$right_split_levels <- rep(NA, nrow(node_table))
 
   # loop through each parent node and extract child nodes and levels for each split
@@ -152,17 +149,28 @@ mojo_gv_to_table <- function(gv_file) {
     child_nodes <- edges_direction_to[which(edges_direction_from == parent_node)]
 
     node_table$left_split[node_table$node == parent_node] <- child_nodes[1]
-
     node_table$right_split[node_table$node == parent_node] <- child_nodes[2]
 
     split_levels <- edges_label[which(edges_direction_from == parent_node)]
 
     node_table$left_split_levels[node_table$node == parent_node] <- split_levels[1]
-
     node_table$right_split_levels[node_table$node == parent_node] <- split_levels[2]
 
   }
 
+  # replace the \\n separator in the split levels with |
+  node_table$left_split_levels <- gsub("\\\\n", "|", node_table$left_split_levels)
+  node_table$right_split_levels <- gsub("\\\\n", "|", node_table$right_split_levels)
+
+  # remove trailing | from columns
+  node_table$left_split_levels <- substr(node_table$left_split_levels,
+                                         1,
+                                         nchar(node_table$left_split_levels) - 1)
+  node_table$right_split_levels <- substr(node_table$right_split_levels,
+                                          1,
+                                          nchar(node_table$right_split_levels) - 1)
+
+  # extract the label part of the text for that node
   node_table$node_text_label <- label_values
 
   node_table$node_variable_type <- rep(NA, nrow(node_table))
@@ -174,9 +182,7 @@ mojo_gv_to_table <- function(gv_file) {
   node_table$node_variable_type[character_labels[character_labels %in% numeric_labels]] <- "numeric"
 
   node_text_label_split <- strsplit(node_table$node_text_label, "<")
-
   node_text_label_split_name <- sapply(node_text_label_split, "[", 1)
-
   node_text_label_split_point <- sapply(node_text_label_split, "[", 2)
 
   # get split column
