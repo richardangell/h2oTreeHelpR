@@ -1,4 +1,3 @@
-
 #' Encode input data as terminal nodes in tree based model.
 #'
 #' @param data input data to encode as terminal nodes from trees. Currently only \code{data.frame}
@@ -45,18 +44,18 @@
 #' @export
 encode_terminal_nodes <- function(data, terminal_node_split_rules, h2o_trees_in_R) {
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Function Layout: ----
   # Section 0. Input checking
   # Section 1. Terminal node encoding for data.frame
   # Section 2. Terminal node encoding for data.table
   # Section 3. Terminal node encoding for H2OFrame
   # Section 4. Return results
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 0. Input checking ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   data_accepted_classes <- c('data.frame', 'data.table', 'H2OFrame')
 
@@ -82,7 +81,10 @@ encode_terminal_nodes <- function(data, terminal_node_split_rules, h2o_trees_in_
 
   }
 
-  expected_split_rules_columns <- c("terminal_node", "terminal_node_depth", "terminal_node_path", "terminal_node_directions")
+  expected_split_rules_columns <- c("terminal_node",
+                                    "terminal_node_depth",
+                                    "terminal_node_path",
+                                    "terminal_node_directions")
 
   split_rules_colnames <- sapply(terminal_node_split_rules, colnames, simplify = TRUE)
 
@@ -110,8 +112,18 @@ encode_terminal_nodes <- function(data, terminal_node_split_rules, h2o_trees_in_
 
   }
 
-  expected_col_names <- c("node", "node_text", "predictions", "left_split", "right_split", "left_split_levels",
-                          "right_split_levels", "node_text_label", "node_variable_type", "split_column", "node_split_point")
+  expected_col_names <- c("node",
+                          "node_text",
+                          "predictions",
+                          "left_split",
+                          "right_split",
+                          "left_split_levels",
+                          "right_split_levels",
+                          "NA_direction",
+                          "node_text_label",
+                          "node_variable_type",
+                          "split_column",
+                          "node_split_point")
 
   h2o_trees_in_R_colnames <- sapply(h2o_trees_in_R, colnames, simplify = TRUE)
 
@@ -132,33 +144,33 @@ encode_terminal_nodes <- function(data, terminal_node_split_rules, h2o_trees_in_
 
   }
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 1. Terminal node encoding for data.frame ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   if (class(data) %in% 'data.frame') {
 
-    trees_terminal_nodes_encoded_list <- mapply(function(x, y, z) ecode_terminal_nodes_tree_df(data = data,
-                                                                                               terminal_node_split_rules = y,
-                                                                                               h2o_tree_in_R = z,
-                                                                                               tree_name = paste0('tree_', x, '_')),
+    trees_terminal_nodes_encoded_list <- mapply(function(x, y, z) encode_terminal_nodes_tree_df(data = data,
+                                                                                                terminal_node_split_rules = y,
+                                                                                                h2o_tree_in_R = z,
+                                                                                                tree_name = paste0('tree_', x, '_')),
                                            1:length(h2o_trees_in_R),
                                            terminal_node_split_rules,
                                            h2o_trees_in_R)
 
     trees_terminal_nodes_encoded <- do.call(cbind, trees_terminal_nodes_encoded_list)
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 2. Terminal node encoding for data.table ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   } else if (class(data) %in% 'data.table') {
 
     stop('data.table not currently supported')
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 3. Terminal node encoding for H2OFrame ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   } else if (class(data) %in% 'H2OFrame') {
 
@@ -166,9 +178,9 @@ encode_terminal_nodes <- function(data, terminal_node_split_rules, h2o_trees_in_
 
   }
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 4. Return results ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   return(trees_terminal_nodes_encoded)
 
@@ -232,16 +244,16 @@ encode_terminal_nodes <- function(data, terminal_node_split_rules, h2o_trees_in_
 #' @export
 encode_terminal_nodes_tree_df <- function(data, terminal_node_split_rules, h2o_tree_in_R, tree_name = 'tree_') {
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Function Layout: ----
   # Section 1. Add input data to terminal node split expressions
   # Section 2. Get terminal node encoding for input tree
   # Section 3. Return results as 0/1 and data.frame
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 1. Add input data to terminal node split expressions ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   split_columns <- unique(h2o_tree_in_R$split_column)
 
@@ -257,18 +269,18 @@ encode_terminal_nodes_tree_df <- function(data, terminal_node_split_rules, h2o_t
 
   }
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 2. Get terminal node encoding for input tree ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   terminal_nodes_encoded <- sapply(terminal_node_rules_for_data,
                                    function(x) eval(parse(text = x)))
 
   colnames(terminal_nodes_encoded) <- paste0(tree_name, terminal_node_split_rules$terminal_node)
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 3. Return results as 0/1 and data.frame ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   terminal_nodes_encoded <- data.frame(terminal_nodes_encoded * 1)
 
