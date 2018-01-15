@@ -1,6 +1,7 @@
 #' Export all trees from a h2o mojo (.zip) to .gv files
 #'
-#' Calls call_PrintMojo to output each tree to .gv file in the input directory
+#' Calls call_PrintMojo to output each tree to .gv file in the supplied
+#' directory
 #'
 #' @param h2o_jar h2o.jar file, including path.
 #' @param mojo_zip h2o tree based mojo zip file, including path.
@@ -18,7 +19,7 @@ mojo_trees_to_gvs <- function(h2o_jar,
   # Section 0. Input checking
   # Section 1. Extract model.ini file
   # Section 2. Convert all trees from mojo zip file to gv files
-  # Section 3. End of function
+  # Section 3. Return .gv files created
   #---------------------------------------------------------------------------#
 
   #---------------------------------------------------------------------------#
@@ -129,13 +130,13 @@ mojo_trees_to_gvs <- function(h2o_jar,
     call_PrintMojo(h2o_jar = h2o_jar,
                    tree_no = i,
                    mojo_zip = mojo_zip,
-                   gv_output = file.path(gv_output_dir,
+                   output_gv = file.path(gv_output_dir,
                                          paste0(mojo_zip_name, '_', i, '.gv')))
 
   }
 
   #---------------------------------------------------------------------------#
-  # Section 3. End of function  ----
+  # Section 3. Return .gv files created  ----
   #---------------------------------------------------------------------------#
 
   return(file.path(gv_output_dir,

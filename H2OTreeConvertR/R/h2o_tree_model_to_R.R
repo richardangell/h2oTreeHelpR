@@ -1,7 +1,7 @@
 #' Convert h2o gbm or drf to tabular structure
 #'
-#' Takes a h2o tree based model (gbm or drf) and returns a \code{data.frame}
-#' representing each tree in the model in tabular structure.
+#' Takes a h2o tree based model (gbm or drf) and returns a \code{list} of
+#' \code{data.frame}s representing each tree in the model in tabular structure.
 #'
 #' @param h2o_model gbm or drf h2o model.
 #' @param output_subdir directory to output intermediate files (mojo .zip, .gv

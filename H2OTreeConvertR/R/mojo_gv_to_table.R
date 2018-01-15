@@ -1,14 +1,11 @@
-#' Convert h2o tree .gv file to tabular structure.
+#' Convert h2o tree .gv file to tabular structure
 #'
 #' Reads a single .gv file containing a tree from a h2o gbm or drf and parses it
-#' to a tabular structure.
+#' into a tabular structure
 #'
 #' @param gv_file .gv file file including path to import.
 #'
 #' @return \code{data.frame} containing tree structure.
-#'
-#' @examples
-#' mojo_gv_to_table("gv_output/GBM_model_R_1488095800763_37_4.gv")
 #'
 #' @export
 mojo_gv_to_table <- function(gv_file) {

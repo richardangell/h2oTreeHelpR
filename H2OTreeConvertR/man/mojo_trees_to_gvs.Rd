@@ -17,5 +17,6 @@ mojo_trees_to_gvs(h2o_jar, mojo_zip, gv_output_dir)
 Outputs trees from mojo zip to .gv files.
 }
 \description{
-Calls call_PrintMojo to output each tree to .gv file in the input directory
+Calls call_PrintMojo to output each tree to .gv file in the supplied
+directory
 }
