@@ -1,8 +1,3 @@
-
-
-
-
-
 #' Get split conditions for edges in tree.
 #'
 #' This function manipulates the output of \code{h2o_tree_model_to_R} function
@@ -44,7 +39,7 @@
 #' @export
 get_split_expressions <- function(h2o_tree_in_R) {
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Function Layout: ----
   # Section 0. Input checking
   # Section 1. Split edges text by \\n delimiter
@@ -52,11 +47,11 @@ get_split_expressions <- function(h2o_tree_in_R) {
   # Section 3. Determine the split condition for numeric variables
   # Section 4. Determine the split condition for categorical variables
   # Section 5. Return info in data.frame
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 0. Input checking ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   if (class(h2o_tree_in_R) != 'data.frame') {
 
@@ -64,9 +59,18 @@ get_split_expressions <- function(h2o_tree_in_R) {
 
   }
 
-  expected_col_names <- c("node", "node_text", "predictions", "left_split", "right_split",
-                          "left_split_levels", "right_split_levels", "node_text_label",
-                          "node_variable_type", "split_column", "node_split_point")
+  expected_col_names <- c("node",
+                          "node_text",
+                          "predictions",
+                          "left_split",
+                          "right_split",
+                          "left_split_levels",
+                          "right_split_levels",
+                          "NA_direction",
+                          "node_text_label",
+                          "node_variable_type",
+                          "split_column",
+                          "node_split_point")
 
   if (any(!colnames(h2o_tree_in_R) == expected_col_names)) {
 
@@ -76,34 +80,28 @@ get_split_expressions <- function(h2o_tree_in_R) {
 
   }
 
-  #---------------------------------------------------------------------------#
-  # Section 1. Split edges text by \\n delimiter ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
+  # Section 1. Split edges text by | delimiter ----
+  #----------------------------------------------------------------------------#
 
-  left_split_values <- strsplit(h2o_tree_in_R$left_split_levels, '\\\\n')
+  left_split_values <- strsplit(h2o_tree_in_R$left_split_levels, '\\|')
 
-  right_split_values <- strsplit(h2o_tree_in_R$right_split_levels, '\\\\n')
+  right_split_values <- strsplit(h2o_tree_in_R$right_split_levels, '\\|')
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 2. Determine which split NAs take ----
-  #---------------------------------------------------------------------------#
-
-  NA_direction <- rep(NA, nrow(h2o_tree_in_R))
-
-  NA_direction[sapply(left_split_values, function(x) "[NA]" %in% x)] <- 'left'
-
-  NA_direction[sapply(right_split_values, function(x) "[NA]" %in% x)] <- 'right'
+  #----------------------------------------------------------------------------#
 
   NA_str <- rep(NA, nrow(h2o_tree_in_R))
 
   # code to check NA for each variable
-  NA_str[!is.na(NA_direction)] <- paste0('is.na(',
-                                         h2o_tree_in_R$split_column[!is.na(NA_direction)],
-                                         ')')
+  NA_str[!is.na(h2o_tree_in_R$NA_direction)] <- paste0('is.na(',
+                                                       h2o_tree_in_R$split_column[!is.na(h2o_tree_in_R$NA_direction)],
+                                                       ')')
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 3. Determine the split condition for numeric variables ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   left_split_str <- rep(NA, nrow(h2o_tree_in_R))
 
@@ -125,9 +123,9 @@ get_split_expressions <- function(h2o_tree_in_R) {
                                                                                  num_right_split_direction,
                                                                                  h2o_tree_in_R$node_split_point[which(h2o_tree_in_R$node_variable_type == 'numeric')])
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 4. Determine the split condition for categorical variables ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   # remove NA from split conditions
   char_left_split_direction <- sapply(left_split_values[which(h2o_tree_in_R$node_variable_type == 'categorical')],
@@ -147,9 +145,9 @@ get_split_expressions <- function(h2o_tree_in_R) {
                                                                                       h2o_tree_in_R$split_column[which(h2o_tree_in_R$node_variable_type == 'categorical')],
                                                                                       char_right_split_direction)
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 5. Return info in data.frame ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   split_expr_df <- data.frame(node = h2o_tree_in_R$node,
                               left_split = h2o_tree_in_R$left_split,
@@ -157,7 +155,7 @@ get_split_expressions <- function(h2o_tree_in_R) {
                               left_split_str = left_split_str,
                               right_split_str = right_split_str,
                               NA_str = NA_str,
-                              NA_direction = NA_direction,
+                              NA_direction = h2o_tree_in_R$NA_direction,
                               stringsAsFactors = FALSE)
 
   return(split_expr_df)
@@ -354,16 +352,16 @@ get_terminal_node_directions <- function(df, node, current_str = NULL, unique_ex
 #' @export
 terminal_node_exprs <- function(split_exprs) {
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Function Layout: ----
   # Section 0. Input checking
   # Section 1. Run get_terminal_node_directions
   # Section 2. Transform list to data.frame to return
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 0. Input checking ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   if (class(split_exprs) != 'data.frame') {
 
@@ -384,17 +382,17 @@ terminal_node_exprs <- function(split_exprs) {
 
   }
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 1. Run get_terminal_node_directions ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   top_node <- split_exprs[1, 'node']
 
   terminal_node_directions_list <- get_terminal_node_directions(df = split_exprs, node = top_node)
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 2. Transform list to data.frame to return ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   terminal_node_directions_unlist <- unlist(terminal_node_directions_list)
 
@@ -481,16 +479,16 @@ terminal_node_exprs <- function(split_exprs) {
 #' @export
 extract_split_rules <- function(h2o_trees_in_R) {
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Function Layout: ----
   # Section 0. Input checking
   # Section 1. Get split conditions for each edge in all trees
   # Section 2. Get complete split conditions for terminal nodes in all trees
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 0. Input checking ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   if (class(h2o_trees_in_R) != 'list') {
 
@@ -505,8 +503,18 @@ extract_split_rules <- function(h2o_trees_in_R) {
 
   }
 
-  expected_col_names <- c("node", "node_text", "predictions", "left_split", "right_split", "left_split_levels",
-                          "right_split_levels", "node_text_label", "node_variable_type", "split_column", "node_split_point")
+  expected_col_names <- c("node",
+                          "node_text",
+                          "predictions",
+                          "left_split",
+                          "right_split",
+                          "left_split_levels",
+                          "right_split_levels",
+                          "NA_direction",
+                          "node_text_label",
+                          "node_variable_type",
+                          "split_column",
+                          "node_split_point")
 
   h2o_trees_in_R_colnames <- sapply(h2o_trees_in_R, colnames, simplify = TRUE)
 
@@ -520,15 +528,15 @@ extract_split_rules <- function(h2o_trees_in_R) {
 
   }
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 1. Get split conditions for each edge in all trees ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   trees_split_expr <- lapply(h2o_trees_in_R, FUN = get_split_expressions)
 
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # Section 2. Get complete split conditions for terminal nodes in all trees ----
-  #---------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
 
   trees_terminal_node_expr <- lapply(trees_split_expr, FUN = terminal_node_exprs)
 
