@@ -5,6 +5,7 @@ Version: 0.1.0
 Author: Richard Angell <richardangell37@gmail.com>
 Maintainer: Richard Angell <richardangell37@gmail.com>
 Description: Convert tree based models in H2O (gbm and random forest) to tabular structure in R. Each tree is represented in a different data.frame.
+Depends: h2o
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
