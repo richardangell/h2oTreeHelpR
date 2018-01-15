@@ -4,16 +4,15 @@
 #' representing each tree in the model in tabular structure.
 #'
 #' @param h2o_model gbm or drf h2o model.
-#' @param h2o_jar_file h2o.jar file, including path.
 #' @param output_subdir directory to output intermediate files (mojo .zip, .gv
 #' and model.ini files) to. Default is location is current working dir. Files
 #' are put into a sudir with date-time in name to avoid conflicts.
 #' @param delete_intermediate_files should intermediate files output in
 #'  processing be deleted? Default = \code{TRUE}.
 #'
-#' @return \code{list} containing a \code{data.frame} for each tree containing
-#' the tree structure. Tree structure \code{data.frame}s contain the following
-#' columns;
+#' @return returns a \code{list} containing a \code{data.frame} for each tree
+#' containing the tree structure. Tree structure \code{data.frame}s contain the
+#' following columns;
 #' \itemize{
 #'   \item{"node"} {name of the node in the tree}
 #'   \item{"node_text"} {complete text associated with the node}
@@ -39,6 +38,7 @@
 #'
 #' @examples
 #' library(h2o)
+#'
 #' h2o.init()
 #'
 #' prostate.hex = h2o.uploadFile(path = system.file("extdata",
@@ -47,9 +47,11 @@
 #'                               destination_frame = "prostate.hex")
 #'
 #' prostate.hex["RACE"] = as.factor(prostate.hex["RACE"])
+#'
 #' prostate.hex["DPROS"] = as.factor(prostate.hex["DPROS"])
 #'
 #' expl_cols <- c("AGE", "RACE", "DPROS", "DCAPS", "PSA", "VOL", "GLEASON")
+#'
 #' prostate.gbm = h2o.gbm(x = expl_cols,
 #'                        y = "CAPSULE",
 #'                        training_frame = prostate.hex,
@@ -57,12 +59,10 @@
 #'                        max_depth = 5,
 #'                        learn_rate = 0.1)
 #'
-#' h2o_trees <- h2o_tree_model_to_R(h2o_model = prostate.gbm,
-#'                                  h2o_jar_file = 'h2o.jar')
+#' h2o_trees <- h2o_tree_model_to_R(h2o_model = prostate.gbm)
 #'
 #' @export
 h2o_tree_model_to_R <- function(h2o_model,
-                                h2o_jar_file,
                                 output_subdir = getwd(),
                                 delete_intermediate_files = TRUE) {
 
@@ -138,6 +138,9 @@ h2o_tree_model_to_R <- function(h2o_model,
   cat("converting trees in mojo to .gv files", "\n")
 
   mojo_file = file.path(output_dir, paste0(h2o_model@model_id, ".zip"))
+
+  # locate h2o.jar file
+  h2o_jar_file = system.file("java", "h2o.jar", package = "h2o")
 
   output_gv_files <- mojo_trees_to_gvs(h2o_jar = h2o_jar_file,
                                        mojo_zip = mojo_file,

@@ -4,13 +4,11 @@
 \alias{h2o_tree_model_to_R}
 \title{Convert h2o gbm or drf to tabular structure}
 \usage{
-h2o_tree_model_to_R(h2o_model, h2o_jar_file, output_subdir = getwd(),
+h2o_tree_model_to_R(h2o_model, output_subdir = getwd(),
   delete_intermediate_files = TRUE)
 }
 \arguments{
 \item{h2o_model}{gbm or drf h2o model.}
-
-\item{h2o_jar_file}{h2o.jar file, including path.}
 
 \item{output_subdir}{directory to output intermediate files (mojo .zip, .gv
 and model.ini files) to. Default is location is current working dir. Files
@@ -20,9 +18,9 @@ are put into a sudir with date-time in name to avoid conflicts.}
 processing be deleted? Default = \code{TRUE}.}
 }
 \value{
-\code{list} containing a \code{data.frame} for each tree containing
-the tree structure. Tree structure \code{data.frame}s contain the following
-columns;
+returns a \code{list} containing a \code{data.frame} for each tree
+containing the tree structure. Tree structure \code{data.frame}s contain the
+following columns;
 \itemize{
   \item{"node"} {name of the node in the tree}
   \item{"node_text"} {complete text associated with the node}
@@ -51,6 +49,7 @@ representing each tree in the model in tabular structure.
 }
 \examples{
 library(h2o)
+
 h2o.init()
 
 prostate.hex = h2o.uploadFile(path = system.file("extdata",
@@ -59,9 +58,11 @@ prostate.hex = h2o.uploadFile(path = system.file("extdata",
                               destination_frame = "prostate.hex")
 
 prostate.hex["RACE"] = as.factor(prostate.hex["RACE"])
+
 prostate.hex["DPROS"] = as.factor(prostate.hex["DPROS"])
 
 expl_cols <- c("AGE", "RACE", "DPROS", "DCAPS", "PSA", "VOL", "GLEASON")
+
 prostate.gbm = h2o.gbm(x = expl_cols,
                        y = "CAPSULE",
                        training_frame = prostate.hex,
@@ -69,7 +70,6 @@ prostate.gbm = h2o.gbm(x = expl_cols,
                        max_depth = 5,
                        learn_rate = 0.1)
 
-h2o_trees <- h2o_tree_model_to_R(h2o_model = prostate.gbm,
-                                 h2o_jar_file = 'h2o.jar')
+h2o_trees <- h2o_tree_model_to_R(h2o_model = prostate.gbm)
 
 }
