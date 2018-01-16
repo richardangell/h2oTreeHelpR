@@ -33,11 +33,7 @@
 #'                        max_depth = 5,
 #'                        learn_rate = 0.1)
 #'
-#' h2o_trees <- h2o_tree_model_to_R(h2o_model = prostate.gbm,
-#'                                  mojo_output_path = '/Users/UserName/Desktop',
-#'                                  gv_output_path = '/Users/UserName/Desktop',
-#'                                  model_ini_overwrite = TRUE,
-#'                                  h2o_jar_file = 'h2o.jar')
+#' h2o_trees <- H2OTreeConvertR::h2o_tree_convertR(prostate.gbm)
 #'
 #' h2o_trees_terminal_node_rules <- extract_split_rules(h2o_trees)
 #'
@@ -102,10 +98,9 @@ encode_terminal_nodes_df <- function(data,
   } else {
 
     # compress one hot encoding into single factor
-    factor_encoding <- factor(apply(terminal_nodes_encoded,
-                                    1,
-                                    function(x) which(x == 1)),
-                              labels = paste0(terminal_node_split_rules$terminal_node))
+    factor_encoding <-
+      factor(apply(terminal_nodes_encoded, 1, function(x) which(x == 1)),
+             labels = paste0(terminal_node_split_rules$terminal_node))
 
     # put factor in data.frame
     terminal_nodes_encoded <- data.frame(factor_encoding)

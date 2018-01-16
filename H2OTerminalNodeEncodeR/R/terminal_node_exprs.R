@@ -33,7 +33,7 @@
 #'                        max_depth = 5,
 #'                        learn_rate = 0.1)
 #'
-#' h2o_trees <- h2o_tree_convertR(prostate.gbm)
+#' h2o_trees <- H2OTreeConvertR::h2o_tree_convertR(prostate.gbm)
 #'
 #' tree_1_split_expr <- get_split_expressions(h2o_trees[[1]])
 #'

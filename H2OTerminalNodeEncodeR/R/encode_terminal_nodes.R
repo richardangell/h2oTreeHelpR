@@ -1,12 +1,14 @@
 #' Encode input data as terminal nodes in tree based model.
 #'
-#' @param data input data to encode as terminal nodes from trees. Currently only \code{data.frame}
-#'        inputs are supported.
-#' @param terminal_node_split_rules \code{list} of splitting rules for terminal nodes in each tree,
-#'        the output from \code{extract_split_rules} function.
-#' @param h2o_trees_in_R \code{list} of trees output from \code{h2o_tree_model_to_R} function.
+#' @param data input data to encode as terminal nodes from trees. Currently only
+#' \code{data.frame} inputs are supported.
+#' @param terminal_node_split_rules \code{list} of splitting rules for terminal
+#' nodes in each tree, the output from \code{extract_split_rules} function.
+#' @param h2o_trees_in_R \code{list} of trees output from
+#' \code{H2OTreeConvertR::h2o_tree_convertR} function.
 #'
-#' @return terminal node encoding for input data. Currently only \code{data.frame} is output.
+#' @return terminal node encoding for input data. Currently only
+#' \code{data.frame} input data is supported.
 #'
 #' @examples
 #' library(h2o)
@@ -29,11 +31,7 @@
 #'                        max_depth = 5,
 #'                        learn_rate = 0.1)
 #'
-#' h2o_trees <- h2o_tree_model_to_R(h2o_model = prostate.gbm,
-#'                                  mojo_output_path = '/Users/UserName/Desktop',
-#'                                  gv_output_path = '/Users/UserName/Desktop',
-#'                                  model_ini_overwrite = TRUE,
-#'                                  h2o_jar_file = 'h2o.jar')
+#' h2o_trees <- H2OTreeConvertR::h2o_tree_convertR(prostate.gbm)
 #'
 #' h2o_trees_terminal_node_rules <- extract_split_rules(h2o_trees)
 #'
@@ -89,7 +87,9 @@ encode_terminal_nodes <- function(data,
                                     "terminal_node_path",
                                     "terminal_node_directions")
 
-  split_rules_colnames <- sapply(terminal_node_split_rules, colnames, simplify = TRUE)
+  split_rules_colnames <- sapply(terminal_node_split_rules,
+                                 colnames,
+                                 simplify = TRUE)
 
   colnames_check <- split_rules_colnames == expected_split_rules_columns
 
@@ -168,17 +168,17 @@ encode_terminal_nodes <- function(data,
     terminal_nodes_encoded <- do.call(cbind,
                                       terminal_nodes_encoded_list)
 
-    #----------------------------------------------------------------------------#
+    #--------------------------------------------------------------------------#
     # Section 2. Terminal node encoding for data.table ----
-    #----------------------------------------------------------------------------#
+    #--------------------------------------------------------------------------#
 
   } else if (class(data) %in% 'data.table') {
 
     stop('data.table not currently supported')
 
-    #----------------------------------------------------------------------------#
+    #--------------------------------------------------------------------------#
     # Section 3. Terminal node encoding for H2OFrame ----
-    #----------------------------------------------------------------------------#
+    #--------------------------------------------------------------------------#
 
   } else if (class(data) %in% 'H2OFrame') {
 
