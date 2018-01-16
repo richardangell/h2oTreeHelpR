@@ -1,4 +1,4 @@
-#' Get split conditions for terminal nodes for all trees in model.
+#' Get split conditions for terminal nodes for all trees in model
 #'
 #' This function takes the output from \code{H2OTreeConvertR::h2o_tree_convertR}
 #' and for each tree in the model determines the split conditions required to
@@ -10,7 +10,7 @@
 #' returned, or directions (LRLL etc)? Default is \code{TRUE}.
 #'
 #' @return \code{list} containing split conditions to reach terminal nodes for
-#'         each tree.
+#' each tree.
 #'
 #' @examples
 #' library(h2o)
