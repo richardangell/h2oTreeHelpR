@@ -4,7 +4,8 @@
 \alias{call_PrintMojo}
 \title{Export single h2o tree from mojo .zip to .gv file}
 \usage{
-call_PrintMojo(h2o_jar, tree_no, mojo_zip, output_gv)
+call_PrintMojo(h2o_jar, tree_no, mojo_zip, output_gv,
+  max_levels_to_print_per_edge = 10)
 }
 \arguments{
 \item{h2o_jar}{h2o.jar file, including path.}
@@ -14,6 +15,10 @@ call_PrintMojo(h2o_jar, tree_no, mojo_zip, output_gv)
 \item{mojo_zip}{h2o tree based mojo zip file, including path.}
 
 \item{output_gv}{.gv file to output to, including path.}
+
+\item{max_levels_to_print_per_edge}{max number of labels to print on an
+edge, if too small then splits from categorical variables with many levels
+will be represented as [X levels]. Default = 10/}
 }
 \value{
 Outputs tree from mojo zip to specified .gv file.

@@ -110,9 +110,47 @@ trees_to_gvs <- function(h2o_jar,
   }
 
   n_trees <- as.numeric(gsub('n_trees = ', '', model_ini[n_trees_line]))
-
+  
   #----------------------------------------------------------------------------#
-  # Section 2. Convert all trees from mojo zip file to gv files  ----
+  # Section 2. Find the max no of cat levels for variables in the model ----
+  #----------------------------------------------------------------------------#
+  
+  domains_files <- grep("domains/", mojo_zip_contents$Name)
+  
+  max_cat_levels <- 0
+  
+  if (length(domains_files) > 0) {
+    
+    # loop through each domain file
+    for (i in domains_files) {
+      
+      # extract model.ini file from zip file to gv_output_dir
+      unzip(mojo_zip,
+            files = mojo_zip_contents$Name[i],
+            exdir = gv_output_dir)
+      
+      # read the domain .txt file
+      domain_file <- readLines(file.path(gv_output_dir, 
+                                         mojo_zip_contents$Name[i]))
+      
+      # if the number of levels is greater than the current record the new max
+      if (length(domain_file) > max_cat_levels) {
+        
+        max_cat_levels <- length(domain_file) 
+        
+      }
+      
+    }
+    
+  } 
+  
+  # esure max_cat_levels is at least the default value of 10
+  # note, this will be passed to levels (maxLevelsToPrintPerEdge) after it is 
+  # passed into PrintMojo from call_PrintMojo
+  max_cat_levels <- max(10 , max_cat_levels)
+  
+  #----------------------------------------------------------------------------#
+  # Section 3. Convert all trees from mojo zip file to gv files  ----
   #----------------------------------------------------------------------------#
 
   # create output directory if required
@@ -133,12 +171,13 @@ trees_to_gvs <- function(h2o_jar,
                    tree_no = i,
                    mojo_zip = mojo_zip,
                    output_gv = file.path(gv_output_dir,
-                                         paste0(mojo_zip_name, '_', i, '.gv')))
+                                         paste0(mojo_zip_name, '_', i, '.gv')),
+                   max_levels_to_print_per_edge = max_cat_levels)
 
   }
 
   #----------------------------------------------------------------------------#
-  # Section 3. Return .gv files created  ----
+  # Section 4. Return .gv files created  ----
   #----------------------------------------------------------------------------#
 
   return(file.path(gv_output_dir,
