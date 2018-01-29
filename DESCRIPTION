@@ -2,8 +2,8 @@ Package: h2oTreeHelpR
 Type: Package
 Title: h2o Tree Helper 
 Version: 0.1.0
-Author: richardangell
-Maintainer: richardangell
+Author: Richard Angell <richardangell37@gmail.com>
+Maintainer: Richard Angell <richardangell37@gmail.com>
 Description: Interesting things to do with trees in h2o from R.
 License: What license is it under?
 Depends: h2o
