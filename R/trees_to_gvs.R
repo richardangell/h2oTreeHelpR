@@ -6,13 +6,17 @@
 #' @param h2o_jar h2o.jar file, including path.
 #' @param mojo_zip h2o tree based mojo zip file, including path.
 #' @param gv_output_dir directory to output .gv files to.
-#'
+#' @param detail \code{logical} default = \code{FALSE}, should
+#' printMojo be called with the '--detail' option? This results in internal
+#' node predictions being printed to the .gv file, among other things.
+#' 
 #' @return Outputs trees from mojo zip to .gv files.
 #'
 #' @export
 trees_to_gvs <- function(h2o_jar,
                          mojo_zip,
-                         gv_output_dir) {
+                         gv_output_dir,
+                         detail = FALSE) {
 
   #----------------------------------------------------------------------------#
   # Function Layout: ----
@@ -166,12 +170,14 @@ trees_to_gvs <- function(h2o_jar,
 
   # loop through each tree and output to .gv file
   for (i in 0:(n_trees - 1)) {
-
+    
+    gv_file <- file.path(gv_output_dir, paste0(mojo_zip_name, '_', i, '.gv'))
+    
     call_PrintMojo(h2o_jar = h2o_jar,
                    tree_no = i,
                    mojo_zip = mojo_zip,
-                   output_gv = file.path(gv_output_dir,
-                                         paste0(mojo_zip_name, '_', i, '.gv')),
+                   output_gv = gv_file,
+                   detail = detail,
                    max_levels_to_print_per_edge = max_cat_levels)
 
   }
@@ -180,8 +186,10 @@ trees_to_gvs <- function(h2o_jar,
   # Section 4. Return .gv files created  ----
   #----------------------------------------------------------------------------#
 
-  return(file.path(gv_output_dir,
-                   paste0(mojo_zip_name, '_', 0:(n_trees - 1), '.gv')))
+  gv_files <- file.path(gv_output_dir,
+                        paste0(mojo_zip_name, '_', 0:(n_trees - 1), '.gv'))
+  
+  return(gv_files)
 
 }
 

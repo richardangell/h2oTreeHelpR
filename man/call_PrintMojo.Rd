@@ -4,7 +4,7 @@
 \alias{call_PrintMojo}
 \title{Export single h2o tree from mojo .zip to .gv file}
 \usage{
-call_PrintMojo(h2o_jar, tree_no, mojo_zip, output_gv,
+call_PrintMojo(h2o_jar, tree_no, mojo_zip, output_gv, detail = FALSE,
   max_levels_to_print_per_edge = 10)
 }
 \arguments{
@@ -16,9 +16,14 @@ call_PrintMojo(h2o_jar, tree_no, mojo_zip, output_gv,
 
 \item{output_gv}{.gv file to output to, including path.}
 
+\item{detail}{\code{logical} default = \code{FALSE}, should
+printMojo be called with the '--detail' option? This results in internal
+node predictions being printed to the .gv file, among other things.}
+
 \item{max_levels_to_print_per_edge}{max number of labels to print on an
 edge, if too small then splits from categorical variables with many levels
-will be represented as [X levels]. Default = 10/}
+will be represented as [X levels]. Default = 10 (the default value in the 
+Java code).}
 }
 \value{
 Outputs tree from mojo zip to specified .gv file.

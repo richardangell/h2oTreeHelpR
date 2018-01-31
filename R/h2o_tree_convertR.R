@@ -7,6 +7,8 @@
 #' @param output_subdir directory to output intermediate files (mojo .zip, .gv
 #' and model.ini files) to. Default is location is current working dir. Files
 #' are put into a sudir with date-time in name to avoid conflicts.
+#' @param get_internal_predictions \code{logical} default = \code{FALSE}, should
+#' predictions for internal (non-terminal nodes) be extracted?
 #' @param delete_intermediate_files should intermediate files output in
 #'  processing be deleted? Default = \code{TRUE}.
 #'
@@ -64,6 +66,7 @@
 #' @export
 h2o_tree_convertR <- function(h2o_model,
                               output_subdir = getwd(),
+                              get_internal_predictions = FALSE,
                               delete_intermediate_files = TRUE) {
 
   #----------------------------------------------------------------------------#
@@ -144,7 +147,8 @@ h2o_tree_convertR <- function(h2o_model,
 
   output_gv_files <- trees_to_gvs(h2o_jar = h2o_jar_file,
                                   mojo_zip = mojo_file,
-                                  gv_output_dir = output_dir)
+                                  gv_output_dir = output_dir,
+                                  detail = get_internal_predictions)
 
   #----------------------------------------------------------------------------#
   # Section 3. Convert .gv files to data.frame structure ----
@@ -152,7 +156,9 @@ h2o_tree_convertR <- function(h2o_model,
 
   cat("parsing .gv structures to data.frames", "\n")
 
-  tree_dfs <- lapply(output_gv_files, gv_to_table)
+  tree_dfs <- lapply(X = output_gv_files, 
+                     FUN = gv_to_table,
+                     detail = get_internal_predictions)
 
   #----------------------------------------------------------------------------#
   # Section 4. Optionally remove directory with intermediate files ----

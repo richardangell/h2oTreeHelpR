@@ -5,7 +5,7 @@
 \title{Convert h2o gbm or drf to tabular structure}
 \usage{
 h2o_tree_convertR(h2o_model, output_subdir = getwd(),
-  delete_intermediate_files = TRUE)
+  get_internal_predictions = FALSE, delete_intermediate_files = TRUE)
 }
 \arguments{
 \item{h2o_model}{gbm or drf h2o model.}
@@ -13,6 +13,9 @@ h2o_tree_convertR(h2o_model, output_subdir = getwd(),
 \item{output_subdir}{directory to output intermediate files (mojo .zip, .gv
 and model.ini files) to. Default is location is current working dir. Files
 are put into a sudir with date-time in name to avoid conflicts.}
+
+\item{get_internal_predictions}{\code{logical} default = \code{FALSE}, should
+predictions for internal (non-terminal nodes) be extracted?}
 
 \item{delete_intermediate_files}{should intermediate files output in
 processing be deleted? Default = \code{TRUE}.}

@@ -4,10 +4,12 @@
 \alias{gv_to_table}
 \title{Convert h2o tree .gv file to tabular structure}
 \usage{
-gv_to_table(gv_file)
+gv_to_table(gv_file, detail)
 }
 \arguments{
 \item{gv_file}{.gv file file including path to import.}
+
+\item{detail}{has the gv file been processed with the option --detail?}
 }
 \value{
 \code{data.frame} containing tree structure.
