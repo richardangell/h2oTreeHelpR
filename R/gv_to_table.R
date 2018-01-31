@@ -4,7 +4,8 @@
 #' into a tabular structure
 #'
 #' @param gv_file .gv file file including path to import.
-#'
+#' @param detail has the gv file been processed with the option --detail?
+#' 
 #' @return \code{data.frame} containing tree structure.
 #'
 #' @export
@@ -83,6 +84,8 @@ gv_to_table <- function(gv_file, detail) {
   # Section 3. Get terminal node predictions ----
   #----------------------------------------------------------------------------#
 
+  node_predictions <- rep(NA, nrow(node_table))
+  
   # split node text 
   node_text_split <- strsplit(node_table$node_text, "label=")
 
@@ -91,34 +94,87 @@ gv_to_table <- function(gv_file, detail) {
 
   # remove the trailing ] from the node text
   label_values <- substr(label_values, 1, nchar(label_values) - 1)
-
+  
+  if (detail) {
+    
+    # replace line breaks with spaces
+    label_values_2 <- gsub("\\\\n\\\\n", " ", label_values)
+    label_values_2 <- gsub("\\\\n", " ", label_values_2)
+    
+    node_shape_box <- grepl("shape=box", node_table$node_text)
+    
+    # identify non-terminal nodes from the presence of "shape=box" text
+    internal_nodes <- which(node_shape_box)
+    
+    # get the terminal nodes
+    terminal_nodes <- which(!node_shape_box)
+    
+    # split node label text by " "
+    label_values_split <- strsplit(label_values_2, " ")
+    
+    # return the values after "Pred:" in the labl text for internal nodes
+    internal_node_preds <- 
+      sapply(label_values_split[internal_nodes],
+             function(x) {
+               pred_idx <- which(x == "Pred:")
+               prediction <- as.numeric(x[pred_idx + 1])
+               return(prediction)
+             })
+    
+    # get the first part of the label text for terminl nodes
+    terminal_node_preds <- sapply(label_values_split[terminal_nodes], "[", 1)
+    
+    node_predictions[internal_nodes] <- internal_node_preds
+    
+    node_predictions[terminal_nodes] <- terminal_node_preds
+    
+    # add node predictions to df
+    node_table$predictions <- node_predictions
+    
+    node_table$node_text_label <- label_values_2
+    
+  } 
+  
+  if (detail) {
+  
+    # if detailed output remove everything after the first line break
+    label_values <- sapply(strsplit(label_values, "\\\\n"), "[", 1)
+    
+  } 
+  
   # convert to numeric 
   label_values_numeric <- suppressWarnings(as.numeric(label_values))
-
+  
   # labels containing only number and hence are terminal node predictions
   numeric_only_labels <- which(!is.na(label_values_numeric))
-
+  
   # which labels contain characters
   character_labels <- which(grepl("[[:alpha:]]", label_values))
-
+  
   # remove any numeric only labels that have scientific notation
   if (any(character_labels %in% numeric_only_labels)) {
-
+    
     character_labels <- 
       character_labels[-which(character_labels %in% numeric_only_labels)]
-
+    
   }
-
+  
   # which labels contain numerics
   numeric_labels <- which(grepl("[[:digit:]]", label_values))
-
-  node_predictions <- rep(NA, nrow(node_table))
-
-  # record terminal node predictions
-  node_predictions[numeric_only_labels] <- 
-    label_values_numeric[numeric_only_labels]
-
-  node_table$predictions <- node_predictions
+  
+  if (!detail) {
+    
+    # record terminal node predictions
+    node_predictions[numeric_only_labels] <- 
+      label_values_numeric[numeric_only_labels]
+    
+    # add node predictions to df
+    node_table$predictions <- node_predictions
+    
+    node_table$node_text_label <- label_values
+    
+  }
+  
 
   #----------------------------------------------------------------------------#
   # Section 4. Get split information ----
@@ -130,6 +186,34 @@ gv_to_table <- function(gv_file, detail) {
   # remove quotes from edges info
   edges_section <- gsub("\"", "", edges_section)
 
+  # if processing detailed output remove the "penwidth=x," part of the label
+  if (detail) {
+    
+    # location of open square brackets in string
+    open_sq_bracket_idx <- gregexpr("\\[", edges_section)
+    
+    # get first open square bracket index
+    open_sq_bracket_first_idx <- sapply(open_sq_bracket_idx, "[", 1)
+    
+    # location of commas in string
+    comma_idxs <- gregexpr(",", edges_section)
+    
+    # get first comma index
+    comma_first_idx <- sapply(comma_idxs, "[", 1)
+    
+    # get text before "penwidth=x," part
+    before_penwidth <- substr(edges_section, 1, open_sq_bracket_first_idx)
+    
+    # get text after "penwidth=x," part
+    after_penwidth <- substr(edges_section, 
+                             comma_first_idx + 1, 
+                             nchar(edges_section))
+    
+    # put together text before and after "penwidth=x,"
+    edges_section <- paste0(before_penwidth, after_penwidth)
+    
+  }
+  
   # split edge lines by "[label="
   edges_section_split <- strsplit(edges_section, " \\[label=")
   
@@ -214,9 +298,6 @@ gv_to_table <- function(gv_file, detail) {
   node_table$NA_direction[grepl("[NA]", 
                                 node_table$right_split_levels)] <- "right"
 
-  # extract the label part of the text for that node
-  node_table$node_text_label <- label_values
-
   node_table$node_variable_type <- rep(NA, nrow(node_table))
 
   # record categorical split variables
@@ -228,14 +309,14 @@ gv_to_table <- function(gv_file, detail) {
   node_table$node_variable_type[nums] <- "numeric"
 
   # extract the split variables and split points
-  node_text_label_split <- strsplit(node_table$node_text_label, "<")
+  node_text_label_split <- strsplit(label_values, "<")
   node_text_label_split_name <- sapply(node_text_label_split, "[", 1)
   node_text_label_split_point <- sapply(node_text_label_split, "[", 2)
 
   # get split column for categorical and numeric variables
   node_table$split_column <- rep(NA, nrow(node_table))
 
-  node_table$split_column[cats] <- node_table$node_text_label[cats]
+  node_table$split_column[cats] <- label_values[cats]
 
   node_table$split_column[nums] <- node_text_label_split_name[nums]
 

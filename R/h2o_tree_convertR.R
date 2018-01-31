@@ -156,7 +156,7 @@ h2o_tree_convertR <- function(h2o_model,
 
   cat("parsing .gv structures to data.frames", "\n")
 
-  tree_dfs <- lapply(x = output_gv_files, 
+  tree_dfs <- lapply(X = output_gv_files, 
                      FUN = gv_to_table,
                      detail = get_internal_predictions)
 
