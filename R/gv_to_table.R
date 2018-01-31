@@ -8,7 +8,7 @@
 #' @return \code{data.frame} containing tree structure.
 #'
 #' @export
-gv_to_table <- function(gv_file) {
+gv_to_table <- function(gv_file, detail) {
 
   #----------------------------------------------------------------------------#
   # Function Layout: ----
@@ -41,18 +41,24 @@ gv_to_table <- function(gv_file) {
   #----------------------------------------------------------------------------#
   # Section 2. Get nodes in table ----
   #----------------------------------------------------------------------------#
-
+  
+  # find the start of the edges section
   edges_line <- which(gv_import == "/* Edges */")
-
+  
+  # find the end of the edges section
   end_edges_line <- which(gv_import[edges_line:n] == "")[1] + edges_line - 1
 
+  # find the start of the nodes section
   nodes_line <- which(gv_import == "/* Nodes */")
 
-  open_brackets_nodes_lines <- which(gv_import[nodes_line:edges_line] == '{') + nodes_line - 1
+  # find the start and end of each node level section
+  open_brackets_nodes_lines <- 
+    which(gv_import[nodes_line:edges_line] == '{') + nodes_line - 1
 
-  close_brackets_nodes_lines <- which(gv_import[nodes_line:edges_line] == '}') + nodes_line - 1
+  close_brackets_nodes_lines <- 
+    which(gv_import[nodes_line:edges_line] == '}') + nodes_line - 1
 
-  # extract rows from the imported file that contain node information; between '{' and  '}'
+  # extract rows that contain node information; between '{' and  '}'
   node_levels_list <- mapply(function(x, y) gv_import[(x + 1):(y - 1)],
                              open_brackets_nodes_lines,
                              close_brackets_nodes_lines,
@@ -60,27 +66,36 @@ gv_to_table <- function(gv_file) {
 
   node_levels <- unlist(node_levels_list)
 
+  # remove quotes from nodes info
   node_levels <- gsub("\"", "", node_levels)
 
+  # split node info by [
   node_levels_split <- strsplit(node_levels, " \\[")
-
-  node_table <- data.frame(node = sapply(node_levels_split, "[", 1),
-                           node_text = paste0("[", sapply(node_levels_split, "[", 2)),
-                           stringsAsFactors = FALSE)
+  
+  # create data.frame to hold node information
+  # put in the node text between and including the square brackets
+  node_table <- 
+    data.frame(node = sapply(node_levels_split, "[", 1),
+               node_text = paste0("[", sapply(node_levels_split, "[", 2)),
+               stringsAsFactors = FALSE)
 
   #----------------------------------------------------------------------------#
   # Section 3. Get terminal node predictions ----
   #----------------------------------------------------------------------------#
 
+  # split node text 
   node_text_split <- strsplit(node_table$node_text, "label=")
 
+  # get the label part of the node text
   label_values <- sapply(node_text_split, "[", 2)
 
+  # remove the trailing ] from the node text
   label_values <- substr(label_values, 1, nchar(label_values) - 1)
 
+  # convert to numeric 
   label_values_numeric <- suppressWarnings(as.numeric(label_values))
 
-  # which labels contain only number and hence are terminal node predictions
+  # labels containing only number and hence are terminal node predictions
   numeric_only_labels <- which(!is.na(label_values_numeric))
 
   # which labels contain characters
@@ -89,7 +104,8 @@ gv_to_table <- function(gv_file) {
   # remove any numeric only labels that have scientific notation
   if (any(character_labels %in% numeric_only_labels)) {
 
-    character_labels <- character_labels[-which(character_labels %in% numeric_only_labels)]
+    character_labels <- 
+      character_labels[-which(character_labels %in% numeric_only_labels)]
 
   }
 
@@ -98,7 +114,9 @@ gv_to_table <- function(gv_file) {
 
   node_predictions <- rep(NA, nrow(node_table))
 
-  node_predictions[numeric_only_labels] <- label_values_numeric[numeric_only_labels]
+  # record terminal node predictions
+  node_predictions[numeric_only_labels] <- 
+    label_values_numeric[numeric_only_labels]
 
   node_table$predictions <- node_predictions
 
@@ -109,18 +127,24 @@ gv_to_table <- function(gv_file) {
   # extract part of the file containing links between nodes
   edges_section <- gv_import[(edges_line + 1):(end_edges_line - 1)]
 
+  # remove quotes from edges info
   edges_section <- gsub("\"", "", edges_section)
 
+  # split edge lines by "[label="
   edges_section_split <- strsplit(edges_section, " \\[label=")
-
+  
+  # get the edge routes
   edges_direction <- sapply(edges_section_split, "[", 1)
 
+  # get the edge labels
   edges_label <- sapply(edges_section_split, "[", 2)
 
+  # remove trailing ] from edge labels
   edges_label <- substr(edges_label, 1, nchar(edges_label) - 1)
 
   edges_direction_split <- strsplit(edges_direction, " -> ")
-
+  
+  # get to and form nodes for each edge
   edges_direction_from <- sapply(edges_direction_split, "[", 1)
 
   edges_direction_to <- sapply(edges_direction_split, "[", 2)
@@ -142,35 +166,53 @@ gv_to_table <- function(gv_file) {
 
   # loop through each parent node and extract child nodes and levels for each split
   for (parent_node in unique(edges_direction_from)) {
+    
+    # get child nodes for parent
+    child_nodes <- 
+      edges_direction_to[which(edges_direction_from == parent_node)]
 
-    child_nodes <- edges_direction_to[which(edges_direction_from == parent_node)]
-
+    # record left and right child nodes from parent in df
     node_table$left_split[node_table$node == parent_node] <- child_nodes[1]
     node_table$right_split[node_table$node == parent_node] <- child_nodes[2]
-
+    
+    # get the edgle label text for the 2 edges from the parent node
     split_levels <- edges_label[which(edges_direction_from == parent_node)]
-
-    node_table$left_split_levels[node_table$node == parent_node] <- split_levels[1]
-    node_table$right_split_levels[node_table$node == parent_node] <- split_levels[2]
+    
+    # record left and right edge labels in df
+    node_table$left_split_levels[node_table$node == parent_node] <- 
+      split_levels[1]
+    
+    node_table$right_split_levels[node_table$node == parent_node] <- 
+      split_levels[2]
 
   }
 
   # replace the \\n separator in the split levels with |
-  node_table$left_split_levels <- gsub("\\\\n", "|", node_table$left_split_levels)
-  node_table$right_split_levels <- gsub("\\\\n", "|", node_table$right_split_levels)
+  node_table$left_split_levels <- 
+    gsub("\\\\n", "|", node_table$left_split_levels)
+  
+  node_table$right_split_levels <- 
+    gsub("\\\\n", "|", node_table$right_split_levels)
 
   # remove trailing | from columns
-  node_table$left_split_levels <- substr(node_table$left_split_levels,
-                                         1,
-                                         nchar(node_table$left_split_levels) - 1)
-  node_table$right_split_levels <- substr(node_table$right_split_levels,
-                                          1,
-                                          nchar(node_table$right_split_levels) - 1)
+  node_table$left_split_levels <- 
+    substr(node_table$left_split_levels,
+           1,
+           nchar(node_table$left_split_levels) - 1)
+  
+  node_table$right_split_levels <- 
+    substr(node_table$right_split_levels,
+           1,
+           nchar(node_table$right_split_levels) - 1)
 
   # record which direction missing values go
   node_table$NA_direction <- rep(NA, nrow(node_table))
-  node_table$NA_direction[grepl("[NA]", node_table$left_split_levels)] <- "left"
-  node_table$NA_direction[grepl("[NA]", node_table$right_split_levels)] <- "right"
+  
+  node_table$NA_direction[grepl("[NA]", 
+                                node_table$left_split_levels)] <- "left"
+  
+  node_table$NA_direction[grepl("[NA]", 
+                                node_table$right_split_levels)] <- "right"
 
   # extract the label part of the text for that node
   node_table$node_text_label <- label_values
@@ -178,28 +220,32 @@ gv_to_table <- function(gv_file) {
   node_table$node_variable_type <- rep(NA, nrow(node_table))
 
   # record categorical split variables
-  node_table$node_variable_type[character_labels[!character_labels %in% numeric_labels]] <- "categorical"
+  cats <- character_labels[!character_labels %in% numeric_labels]
+  node_table$node_variable_type[cats] <- "categorical"
 
   # record numerical split variables
-  node_table$node_variable_type[character_labels[character_labels %in% numeric_labels]] <- "numeric"
+  nums <- character_labels[character_labels %in% numeric_labels]
+  node_table$node_variable_type[nums] <- "numeric"
 
+  # extract the split variables and split points
   node_text_label_split <- strsplit(node_table$node_text_label, "<")
   node_text_label_split_name <- sapply(node_text_label_split, "[", 1)
   node_text_label_split_point <- sapply(node_text_label_split, "[", 2)
 
-  # get split column
+  # get split column for categorical and numeric variables
   node_table$split_column <- rep(NA, nrow(node_table))
 
-  node_table$split_column[which(node_table$node_variable_type == 'categorical')] <- node_table$node_text_label[which(node_table$node_variable_type == 'categorical')]
+  node_table$split_column[cats] <- node_table$node_text_label[cats]
 
-  node_table$split_column[which(node_table$node_variable_type == 'numeric')] <- node_text_label_split_name[which(node_table$node_variable_type == 'numeric')]
+  node_table$split_column[nums] <- node_text_label_split_name[nums]
 
   node_table$split_column <- gsub(' ', '', node_table$split_column)
 
-  # get split points for numeric variables
   node_table$node_split_point <- rep(NA, nrow(node_table))
-
-  node_table$node_split_point[which(node_table$node_variable_type == 'numeric')] <- as.numeric(node_text_label_split_point[which(node_table$node_variable_type == 'numeric')])
+  
+  # get split points for numeric variables
+  node_table$node_split_point[nums] <- 
+    as.numeric(node_text_label_split_point[nums])
 
   #----------------------------------------------------------------------------#
   # Section 5. Return tree in tabular structure ----

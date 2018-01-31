@@ -38,7 +38,6 @@ call_PrintMojo <- function(h2o_jar,
     
   }
   
-  
   java_command <- paste("java -cp",
                         h2o_jar,
                         "hex.genmodel.tools.PrintMojo",
