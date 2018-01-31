@@ -4,7 +4,7 @@
 \alias{trees_to_gvs}
 \title{Export all trees from a h2o mojo (.zip) to .gv files}
 \usage{
-trees_to_gvs(h2o_jar, mojo_zip, gv_output_dir)
+trees_to_gvs(h2o_jar, mojo_zip, gv_output_dir, detail = FALSE)
 }
 \arguments{
 \item{h2o_jar}{h2o.jar file, including path.}
@@ -12,6 +12,10 @@ trees_to_gvs(h2o_jar, mojo_zip, gv_output_dir)
 \item{mojo_zip}{h2o tree based mojo zip file, including path.}
 
 \item{gv_output_dir}{directory to output .gv files to.}
+
+\item{detail}{\code{logical} default = \code{FALSE}, should
+printMojo be called with the '--detail' option? This results in internal
+node predictions being printed to the .gv file, among other things.}
 }
 \value{
 Outputs trees from mojo zip to .gv files.
