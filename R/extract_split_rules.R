@@ -79,7 +79,7 @@ extract_split_rules <- function(h2o_trees_R, terminal_node_paths = TRUE) {
 
   h2o_trees_R_colnames <- sapply(h2o_trees_R, colnames, simplify = TRUE)
 
-  colnames_check <- h2o_trees_R_colnames == expected_col_names
+  colnames_check <- h2o_trees_R_colnames %in% expected_col_names
 
   if (any(!colnames_check)) {
 
