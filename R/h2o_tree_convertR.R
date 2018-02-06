@@ -109,7 +109,7 @@ h2o_tree_convertR <- function(h2o_model,
                        .Platform$file.sep,
                        Sys.Date(),
                        "_",
-                       gsub(":", "-", format(Sys.time(), "%X")),
+                       gsub(" ", "-", gsub(":", "-", format(Sys.time(), "%X"))),
                        "_H2OTreeConvertR-Intermediate")
 
   if (dir.exists(output_dir)) {
