@@ -12,7 +12,8 @@ gv_to_table(gv_file, detail)
 \item{detail}{has the gv file been processed with the option --detail?}
 }
 \value{
-\code{data.frame} containing tree structure.
+\code{data.frame} containing tree structure, if the gv file is of an
+empty tree then \code{NULL} is returned.
 }
 \description{
 Reads a single .gv file containing a tree from a h2o gbm or drf and parses it
