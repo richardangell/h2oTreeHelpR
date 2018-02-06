@@ -6,7 +6,8 @@
 #' @param gv_file .gv file file including path to import.
 #' @param detail has the gv file been processed with the option --detail?
 #' 
-#' @return \code{data.frame} containing tree structure.
+#' @return \code{data.frame} containing tree structure, if the gv file is of an
+#' empty tree then \code{NULL} is returned.
 #'
 #' @export
 gv_to_table <- function(gv_file, detail) {
@@ -43,14 +44,21 @@ gv_to_table <- function(gv_file, detail) {
   # Section 2. Get nodes in table ----
   #----------------------------------------------------------------------------#
   
+  # find the start of the nodes section
+  nodes_line <- which(gv_import == "/* Nodes */")
+  
   # find the start of the edges section
   edges_line <- which(gv_import == "/* Edges */")
   
+  # if there is nothing in the .gv file return NULL
+  if (nodes_line == 17 & edges_line == 24) {
+    
+    return(NULL)
+    
+  }
+  
   # find the end of the edges section
   end_edges_line <- which(gv_import[edges_line:n] == "")[1] + edges_line - 1
-
-  # find the start of the nodes section
-  nodes_line <- which(gv_import == "/* Nodes */")
 
   # find the start and end of each node level section
   open_brackets_nodes_lines <- 
