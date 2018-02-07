@@ -71,7 +71,7 @@ get_split_expressions <- function(h2o_tree_R) {
                           "split_column",
                           "node_split_point")
 
-  if (any(!colnames(h2o_tree_R) == expected_col_names)) {
+  if (any(!colnames(h2o_tree_R) %in% expected_col_names)) {
 
     stop('expecting h2o_tree_R to be a data.frame (output from mojo_gv_to_table function),
          some column names are not in the expected; ',
