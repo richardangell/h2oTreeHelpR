@@ -168,7 +168,7 @@ gv_to_table <- function(gv_file, detail) {
   }
   
   # which labels contain numerics
-  numeric_labels <- which(grepl("[[:digit:]]", label_values))
+  numeric_labels <- which(grepl("<", label_values))
   
   if (!detail) {
     
