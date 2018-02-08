@@ -69,7 +69,7 @@ terminal_node_exprs <- function(split_exprs, terminal_node_paths = TRUE) {
                           'left_split_str', 'right_split_str',
                           'NA_str', 'NA_direction')
 
-  if (any(!colnames(split_exprs) == expected_cols_expr)) {
+  if (any(!colnames(split_exprs) %in% expected_cols_expr)) {
 
     stop('expecting split_exprs to be a data.frame (output from get_split_expressions function),
          some column names are not in the expected; ',
