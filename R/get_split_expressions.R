@@ -160,8 +160,8 @@ get_split_expressions <- function(h2o_tree_R) {
   split_expr_df <- data.frame(node = h2o_tree_R$node,
                               left_split = h2o_tree_R$left_split,
                               right_split = h2o_tree_R$right_split,
-                              left_split_str = left_split_str,
-                              right_split_str = right_split_str,
+                              left_split_str = unlist(left_split_str),
+                              right_split_str = unlist(right_split_str),
                               NA_str = NA_str,
                               NA_direction = h2o_tree_R$NA_direction,
                               stringsAsFactors = FALSE)
