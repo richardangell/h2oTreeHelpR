@@ -118,7 +118,8 @@ terminal_node_exprs <- function(split_exprs, terminal_node_paths = TRUE) {
   # paste back together again the nodes visited to reach the terminal node
   # - having removed the duplicated terminal node
   terminal_node_path <- sapply(terminal_node_path_split,
-                               function(x) paste(x, collapse = '.'))
+                               function(x) paste(x, collapse = '.'),
+                               simplify = FALSE)
 
   # remove 1 from the number of nodes to get depth
   terminal_node_depth <- sapply(terminal_node_path_split, length) - 1
