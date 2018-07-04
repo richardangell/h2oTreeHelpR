@@ -113,13 +113,13 @@ terminal_node_exprs <- function(split_exprs, terminal_node_paths = TRUE) {
   #   in the top node in the tree as it has been lost
   terminal_node_path_split <- sapply(terminal_node_path_split,
                                      function(x) c(top_node,
-                                                   x[1:(length(x) - 1)]))
+                                                   x[1:(length(x) - 1)]),
+                                     simplify = FALSE)
 
   # paste back together again the nodes visited to reach the terminal node
   # - having removed the duplicated terminal node
   terminal_node_path <- sapply(terminal_node_path_split,
-                               function(x) paste(x, collapse = '.'),
-                               simplify = FALSE)
+                               function(x) paste(x, collapse = '.'))
 
   # remove 1 from the number of nodes to get depth
   terminal_node_depth <- sapply(terminal_node_path_split, length) - 1
