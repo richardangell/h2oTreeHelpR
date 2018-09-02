@@ -38,8 +38,14 @@ call_PrintMojo <- function(h2o_jar,
     
   }
   
+  # record current option 
+  current_useFancyQuotes <- getOption('useFancyQuotes')
+  
+  # turn off useFancyQuotes so dQuote uses undirectional ASCII quote style
+  options(useFancyQuotes = FALSE)
+  
   java_command <- paste("java -cp",
-                        h2o_jar,
+                        dQuote(h2o_jar),
                         "hex.genmodel.tools.PrintMojo",
                         "--tree ",
                         tree_no,
@@ -47,10 +53,13 @@ call_PrintMojo <- function(h2o_jar,
                         "--levels",
                         max_levels_to_print_per_edge,
                         "-i",
-                        mojo_zip,
+                        dQuote(mojo_zip),
                         "-o",
-                        output_gv)
+                        dQuote(output_gv))
 
   system(java_command)
 
+  # reset useFancyQuotes option 
+  options(useFancyQuotes = current_useFancyQuotes)
+  
 }
