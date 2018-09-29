@@ -222,8 +222,8 @@ gv_to_table <- function(gv_file, detail) {
     
   }
   
-  # split edge lines by "[label="
-  edges_section_split <- strsplit(edges_section, " \\[label=")
+  # split edge lines by "label="
+  edges_section_split <- strsplit(edges_section, " \\label=")
   
   # get the edge routes
   edges_direction <- sapply(edges_section_split, "[", 1)
