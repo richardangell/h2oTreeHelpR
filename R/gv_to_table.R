@@ -238,9 +238,11 @@ gv_to_table <- function(gv_file, detail) {
   
   # get to and form nodes for each edge
   edges_direction_from <- sapply(edges_direction_split, "[", 1)
-
   edges_direction_to <- sapply(edges_direction_split, "[", 2)
 
+  # split by " " and take the first part
+  edges_direction_to <- sapply(strsplit(edges_direction_to, " "), "[", 1)
+  
   # assumes there are only two splits per node
   if (any(table(edges_direction_from) != 2)) {
 
