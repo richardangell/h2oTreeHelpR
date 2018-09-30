@@ -65,9 +65,139 @@
 #'
 #' @export
 h2o_tree_convertR <- function(h2o_model,
+                              via_mojo = FALSE,
                               output_subdir = getwd(),
                               get_internal_predictions = FALSE,
                               delete_intermediate_files = TRUE) {
+  
+  #----------------------------------------------------------------------------#
+  # Function Layout: ----
+  # Section 0. Input checking
+  # Section 1. Extract tree info depending on pkg version and via_mojo arg
+  # Section 2. Return data.frames containing tree structures
+  #----------------------------------------------------------------------------#
+  
+  #----------------------------------------------------------------------------#
+  # Section 0. Input checking ----
+  #----------------------------------------------------------------------------#
+  
+  if (packageVersion("h2o") < '3.20.0.6') {
+    
+    if (!via_mojo) {
+      
+      stop('h2o package version ', 
+           packageVersion("h2o"),
+           ' lt 3.20.0.6 so tree info must be extracted via mojo and .gv files',
+           ' (via_mojo must be TRUE)')
+      
+    }
+    
+  }
+  
+  #----------------------------------------------------------------------------#
+  # Section 1. Extract tree info depending on pkg version and via_mojo arg ----
+  #----------------------------------------------------------------------------#
+  
+  if (via_mojo) {
+    
+    trees <- h2o_tree_convertR_via_mojo(h2o_model,
+                                        output_subdir,
+                                        get_internal_predictions,
+                                        delete_intermediate_files)
+    
+  } #else {
+    
+    #trees <- h2o_tree_convertR_with_h2o(h2o_model)
+    
+  #}
+  
+  #----------------------------------------------------------------------------#
+  # Section 2. Return data.frames containing tree structures ----
+  #----------------------------------------------------------------------------#
+  
+  return(trees)
+  
+}
+
+
+
+
+
+
+
+
+#' Convert h2o gbm or drf to tabular structure via mojo
+#'
+#' Takes a h2o tree based model (gbm or drf) and returns a \code{list} of
+#' \code{data.frame}s representing each tree in the model in tabular structure.
+#' In order to access the tree internals this functions exports the h2o model
+#' to a mojo .zip and reads the .gv files from within.
+#'
+#' @param h2o_model gbm or drf h2o model.
+#' @param output_subdir directory to output intermediate files (mojo .zip, .gv
+#' and model.ini files) to. Default is location is current working dir. Files
+#' are put into a sudir with date-time in name to avoid conflicts.
+#' @param get_internal_predictions \code{logical} default = \code{FALSE}, should
+#' predictions for internal (non-terminal nodes) be extracted?
+#' @param delete_intermediate_files should intermediate files output in
+#'  processing be deleted? Default = \code{TRUE}.
+#'
+#' @return returns a \code{list} containing a \code{data.frame} for each tree
+#' containing the tree structure. Tree structure \code{data.frame}s contain the
+#' following columns;
+#' \itemize{
+#'   \item{"node"} {name of the node in the tree}
+#'   \item{"node_text"} {complete text associated with the node}
+#'   \item{"predictions"} {predicted values for terminal nodes or NA}
+#'   \item{"left_split"} {left child node or NA if a terminal node}
+#'   \item{"right_split"} {right child node or NA if a terminal node}
+#'   \item{"left_split_levels"} {levels of the split variable that are sent to
+#'   the left child node from the current node, separated by |}
+#'   \item{"right_split_levels"} {levels of the split variable that are sent
+#'   to the left child node from the current node, separated by |}
+#'   \item{"NA_direction"} {the direction missing values are sent from the
+#'   current node}
+#'   \item{"node_text_label"} {the label arg of node_text, specifically the
+#'   split condition for numeric split variables or the variable name for
+#'   categorical variables}
+#'   \item{"node_variable_type"} {split variable type for node, either
+#'   categorical or numeric}
+#'   \item{"split_column"} {the name of the split column for the current node}
+#'   \item{"node_split_point"} {the split value for the current node if numeric,
+#'   otherwise NA}
+#' }
+#'
+#'
+#' @examples
+#' library(h2o)
+#'
+#' h2o.init()
+#'
+#' prostate.hex = h2o.uploadFile(path = system.file("extdata",
+#'                                                  "prostate.csv",
+#'                                                  package = "h2o"),
+#'                               destination_frame = "prostate.hex")
+#'
+#' prostate.hex["RACE"] = as.factor(prostate.hex["RACE"])
+#'
+#' prostate.hex["DPROS"] = as.factor(prostate.hex["DPROS"])
+#'
+#' expl_cols <- c("AGE", "RACE", "DPROS", "DCAPS", "PSA", "VOL", "GLEASON")
+#'
+#' prostate.gbm = h2o.gbm(x = expl_cols,
+#'                        y = "CAPSULE",
+#'                        training_frame = prostate.hex,
+#'                        ntrees = 5,
+#'                        max_depth = 5,
+#'                        learn_rate = 0.1)
+#'
+#' h2o_trees <- h2o_tree_convertR_via_mojo(h2o_model = prostate.gbm)
+#'
+#' @export
+h2o_tree_convertR_via_mojo <- function(h2o_model,
+                                       output_subdir = getwd(),
+                                       get_internal_predictions = FALSE,
+                                       delete_intermediate_files = TRUE) {
 
   #----------------------------------------------------------------------------#
   # Function Layout: ----
