@@ -1,7 +1,7 @@
 h2oTreeHelpR
 ================
 
-##### Useful functions to manipulate tree based models in h2o from R
+#### Useful functions to manipulate tree based models in h2o from R
 
 Refer to the [Code-Structure](https://github.com/richardangell/h2oTreeHelpR/blob/master/Code-Structure.md) document for an overview of the code structure. <br>
 
@@ -35,7 +35,7 @@ prostate.gbm = h2o.gbm(x = expl_cols,
 h2o\_tree\_convertR
 -------------------
 
-##### Convert h2o tree structures to data.frames
+#### Convert h2o tree structures to data.frames
 
 ``` r
 prostate.gbm
@@ -45,10 +45,10 @@ prostate.gbm
     ## ==============
     ## 
     ## H2ORegressionModel: gbm
-    ## Model ID:  GBM_model_R_1538296273962_39 
+    ## Model ID:  GBM_model_R_1538296273962_40 
     ## Model Summary: 
     ##   number_of_trees number_of_internal_trees model_size_in_bytes min_depth
-    ## 1               3                        3                 260         1
+    ## 1               3                        3                 261         1
     ##   max_depth mean_depth min_leaves max_leaves mean_leaves
     ## 1         1    1.00000          2          2     2.00000
     ## 
@@ -90,7 +90,7 @@ h2o_tree_dfs[[1]]
 extract\_split\_rules
 ---------------------
 
-##### Get split conditions for terminal nodes for trees in a h2o model
+#### Get split conditions for terminal nodes for trees in a h2o model
 
 ``` r
 terminal_node_rules <- extract_split_rules(h2o_tree_dfs)
@@ -110,7 +110,7 @@ terminal_node_rules[[1]]
 map\_h2o\_encoding
 ------------------
 
-##### Create a mapping for the output of h2o.predict\_lead\_node\_assignment in terms of variable conditions
+#### Create a mapping for the output of h2o.predict\_lead\_node\_assignment in terms of variable conditions
 
 Specifically this a mapping between terminal node paths represented as i. L(eft) or R(ight) directions at each node (output from h2o.predict\_lead\_node\_assignment) and ii. variable conditions (i.e. A &gt; x & B in (y, z) etc).
 
@@ -128,3 +128,5 @@ terminal_node_mapping[[1]]
     ##           terminal_node_directions terminal_node_directions_h2o
     ## 1 (GLEASON < 6.5 | is.na(GLEASON))                            L
     ## 2                   GLEASON >= 6.5                            R
+
+The last column *terminal\_node\_directions\_h2o* shows the terminal nodes as they are represented in the output of the h2o.predict\_lead\_node\_assignment function.
