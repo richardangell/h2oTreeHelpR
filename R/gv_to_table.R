@@ -303,10 +303,10 @@ gv_to_table <- function(gv_file, detail) {
   node_table$NA_direction <- rep(NA, nrow(node_table))
   
   node_table$NA_direction[grepl("[NA]", 
-                                node_table$left_split_levels)] <- "left"
+                                node_table$left_split_levels)] <- "LEFT"
   
   node_table$NA_direction[grepl("[NA]", 
-                                node_table$right_split_levels)] <- "right"
+                                node_table$right_split_levels)] <- "RIGHT"
 
   node_table$node_variable_type <- rep(NA, nrow(node_table))
 
