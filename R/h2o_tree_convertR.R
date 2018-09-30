@@ -100,22 +100,22 @@ h2o_tree_convertR <- function(h2o_model,
   
   if (via_mojo) {
     
-    trees <- h2o_tree_convertR_via_mojo(h2o_model,
-                                        output_subdir,
-                                        get_internal_predictions,
-                                        delete_intermediate_files)
+    tree_dfs <- h2o_tree_convertR_via_mojo(h2o_model,
+                                           output_subdir,
+                                           get_internal_predictions,
+                                           delete_intermediate_files)
     
-  } #else {
+  } else {
     
-    #trees <- h2o_tree_convertR_with_h2o(h2o_model)
+    tree_dfs <- h2o_tree_convertR_with_h2o(h2o_model, get_internal_predictions)
     
-  #}
+  }
   
   #----------------------------------------------------------------------------#
   # Section 2. Return data.frames containing tree structures ----
   #----------------------------------------------------------------------------#
   
-  return(trees)
+  return(tree_dfs)
   
 }
 
@@ -314,4 +314,134 @@ h2o_tree_convertR_via_mojo <- function(h2o_model,
 
 
 
-
+#' Convert h2o gbm or drf to tabular structure with h2o
+#'
+#' Takes a h2o tree based model (gbm or drf) and returns a \code{list} of
+#' \code{data.frame}s representing each tree in the model in tabular structure.
+#' This function uses \code{h2o::h2o.getModelTree} to extract tree structures.
+#'
+#' @param h2o_model gbm or drf h2o model.
+#' @param get_internal_predictions \code{logical}, default = \code{FALSE} will 
+#' return only predictions for leaf (terminal) nodes, otherwise internal node
+#' predictions are also returned.
+#'
+#' @return returns a \code{list} containing a \code{data.frame} for each tree
+#' containing the tree structure. Tree structure \code{data.frame}s contain the
+#' following columns;
+#' \itemize{
+#'   \item{"node"} {name of the node in the tree}
+#'   \item{"node_text"} {complete text associated with the node}
+#'   \item{"predictions"} {predicted values for terminal nodes or NA}
+#'   \item{"left_split"} {left child node or NA if a terminal node}
+#'   \item{"right_split"} {right child node or NA if a terminal node}
+#'   \item{"left_split_levels"} {levels of the split variable that are sent to
+#'   the left child node from the current node, separated by |}
+#'   \item{"right_split_levels"} {levels of the split variable that are sent
+#'   to the left child node from the current node, separated by |}
+#'   \item{"NA_direction"} {the direction missing values are sent from the
+#'   current node}
+#'   \item{"node_text_label"} {the label arg of node_text, specifically the
+#'   split condition for numeric split variables or the variable name for
+#'   categorical variables}
+#'   \item{"node_variable_type"} {split variable type for node, either
+#'   categorical or numeric}
+#'   \item{"split_column"} {the name of the split column for the current node}
+#'   \item{"node_split_point"} {the split value for the current node if numeric,
+#'   otherwise NA}
+#' }
+#'
+#'
+#' @examples
+#' library(h2o)
+#'
+#' h2o.init()
+#'
+#' prostate.hex = h2o.uploadFile(path = system.file("extdata",
+#'                                                  "prostate.csv",
+#'                                                  package = "h2o"),
+#'                               destination_frame = "prostate.hex")
+#'
+#' prostate.hex["RACE"] = as.factor(prostate.hex["RACE"])
+#'
+#' prostate.hex["DPROS"] = as.factor(prostate.hex["DPROS"])
+#'
+#' expl_cols <- c("AGE", "RACE", "DPROS", "DCAPS", "PSA", "VOL", "GLEASON")
+#'
+#' prostate.gbm = h2o.gbm(x = expl_cols,
+#'                        y = "CAPSULE",
+#'                        training_frame = prostate.hex,
+#'                        ntrees = 5,
+#'                        max_depth = 5,
+#'                        learn_rate = 0.1)
+#'
+#' h2o_trees <- h2o_tree_convertR_with_h2o(h2o_model = prostate.gbm)
+#'
+#' @export
+h2o_tree_convertR_with_h2o <- function(h2o_model, get_internal_predictions) {
+  
+  #----------------------------------------------------------------------------#
+  # Function Layout: ----
+  # Section 0. Input checking
+  # Section 1. Get tree information using h2o.getModelTree
+  # Section 2. Extract info into particular format
+  # Section 3. Return tree structures
+  #----------------------------------------------------------------------------#
+  
+  #----------------------------------------------------------------------------#
+  # Section 0. Input checking ----
+  #----------------------------------------------------------------------------#
+  
+  h2o_model_classes <- c('H2ORegressionModel', 'H2OBinomialModel')
+  
+  if (!class(h2o_model) %in% h2o_model_classes) {
+    
+    stop('accepted classes for h2o_model are; ',
+         h2o_model_classes,
+         ', but got; ',
+         class(h2o_model))
+    
+  }
+  
+  h2o_model_algos <- c('gbm', 'drf')
+  
+  if (!h2o_model@algorithm %in% h2o_model_algos) {
+    
+    stop('accepted model types for h2o_model are; ',
+         h2o_model_algos,
+         ', but got; ',
+         h2o_model@algorithm)
+    
+  }
+  
+  #----------------------------------------------------------------------------#
+  # Section 1. Get tree information using h2o.getModelTree ----
+  #----------------------------------------------------------------------------#
+  
+  # using scoring history as early stopping may have stopped short of 
+  # h2o_model@allparameters$ntrees
+  n_trees <- max(h2o_model@model$scoring_history$number_of_trees)
+  
+  if (n_trees == 0) {
+    
+    stop('no trees in model')
+    
+  }
+  
+  h2o_trees <- lapply(1:n_trees,
+                      function(x) h2o.getModelTree(h2o_model, x))
+  
+  #----------------------------------------------------------------------------#
+  # Section 2. Extract info into particular format ----
+  #----------------------------------------------------------------------------#
+  
+  h2o_tree_info <- lapply(X = h2o_trees, 
+                          FUN = extract_H2OTree_info, 
+                          get_internal_predictions = get_internal_predictions)
+  
+  #----------------------------------------------------------------------------#
+  # Section 3. Return tree structures ----
+  #----------------------------------------------------------------------------#
+  
+  return(h2o_tree_info)
+  
+} 
