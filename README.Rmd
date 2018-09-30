@@ -1,0 +1,79 @@
+---
+title: "h2oTreeHelpR"
+output: github_document
+---
+
+##### Useful functions to manipulate tree based models in h2o from R 
+
+Refer to the [Code-Structure](https://github.com/richardangell/h2oTreeHelpR/blob/master/Code-Structure.md) document for an overview of the code structure. <br>
+
+The main functions in the package are demonstrated below. <br>
+
+First build a simple gbm with the following code; <br>
+
+```{r, message = FALSE, results = 'hide'}
+library(h2o)
+library(h2oTreeHelpR)
+h2o.no_progress()
+h2o.init()
+```
+
+```{r, message = FALSE}
+prostate.hex = h2o.uploadFile(path = system.file("extdata",
+                                                 "prostate.csv",
+                                                 package = "h2o"),
+                              destination_frame = "prostate.hex")
+prostate.hex["RACE"] = as.factor(prostate.hex["RACE"])
+prostate.hex["DPROS"] = as.factor(prostate.hex["DPROS"])
+expl_cols <- c("AGE", "RACE", "DPROS", "DCAPS", "PSA", "VOL", "GLEASON")
+prostate.gbm = h2o.gbm(x = expl_cols,
+                       y = "CAPSULE",
+                       training_frame = prostate.hex,
+                       ntrees = 3,
+                       max_depth = 1,
+                       learn_rate = 0.1)
+```
+
+## h2o_tree_convertR
+
+##### Convert h2o tree structures to data.frames
+
+```{r}
+prostate.gbm
+```
+
+```{r, message = FALSE, results = 'hide'}
+h2o_tree_dfs = h2o_tree_convertR(h2o_model = prostate.gbm)
+```
+
+```{r}
+h2o_tree_dfs[[1]]
+```
+
+## extract_split_rules
+
+##### Get split conditions for terminal nodes for trees in a h2o model
+
+```{r}
+terminal_node_rules <- extract_split_rules(h2o_tree_dfs)
+```
+
+```{r}
+terminal_node_rules[[1]]
+```
+
+## map_h2o_encoding
+
+##### Create a mapping for the output of h2o.predict_lead_node_assignment in terms of variable conditions
+
+Specifically this a mapping between terminal node paths represented as i. L(eft) or R(ight) directions at each node (output from h2o.predict_lead_node_assignment) and ii. variable conditions (i.e. A > x & B in (y, z) etc).
+
+```{r}
+terminal_node_mapping <- map_h2o_encoding(h2o_tree_dfs)
+```
+
+```{r}
+terminal_node_mapping[[1]]
+```
+
+
